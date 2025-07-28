@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "ros_custom_controller/FeedbackController/FeedbackControllerBase.hpp"
+#include <romer_custom_controller/FeedbackController/FeedbackControllerBase.hpp>
 
 #include <ctime>
 
@@ -17,16 +17,14 @@ template<typename Robot>
 class PIDControllerBase : public FeedbackControllerBase<Robot>
 {
  public:
-  PIDControllerBase(ros::NodeHandle *nodeHandle, Robot &robot)
+  PIDControllerBase(const std::string& node_name, Robot &robot)
       :
-      FeedbackControllerBase<Robot>(nodeHandle, robot)
+      FeedbackControllerBase<Robot>(node_name, robot)
   {
 
   }
 
-  virtual ~PIDControllerBase()
-  {
-  }
+  virtual ~PIDControllerBase() = default;
 
   virtual void create() override
   {
@@ -40,20 +38,19 @@ class PIDControllerBase : public FeedbackControllerBase<Robot>
   virtual void readParameters() override
   {
     FeedbackControllerBase<Robot>::readParameters();
-    // PARAMETERS
-    // K_P
-    ros_node_utils::paramRead(this->nodeHandle_,
-                              "/" + this->namespace_ + "/controller/P_Controller/KP", k_p_);
-    // K_I
-    ros_node_utils::paramRead(this->nodeHandle_,
-                              "/" + this->namespace_ + "/controller/P_Controller/KI", k_i_);
-    ros_node_utils::paramRead(this->nodeHandle_,
-                              "/" + this->namespace_ + "/controller/P_Controller/integral_limit",
-                              integralLimit_);
-    // K_D
-    ros_node_utils::paramRead(this->nodeHandle_,
-                              "/" + this->namespace_ + "/controller/P_Controller/KD", k_d_);
+    
+    // Declare all parameters with default values
+    std::vector<double> default_gains(this->robot_.getState().size(), 0.0);
+    this->robot_.getNode()->declare_parameter("controller/P_Controller/KP", default_gains);
+    this->robot_.getNode()->declare_parameter("controller/P_Controller/KI", default_gains);
+    this->robot_.getNode()->declare_parameter("controller/P_Controller/KD", default_gains);
+    this->robot_.getNode()->declare_parameter("controller/P_Controller/integral_limit", default_gains);
 
+    // Read parameters
+    paramRead(this->robot_.getNode(), "controller/P_Controller/KP", k_p_);
+    paramRead(this->robot_.getNode(), "controller/P_Controller/KI", k_i_);
+    paramRead(this->robot_.getNode(), "controller/P_Controller/KD", k_d_);
+    paramRead(this->robot_.getNode(), "controller/P_Controller/integral_limit", integralLimit_);
   }
 
   virtual void initialize(){
@@ -66,8 +63,8 @@ class PIDControllerBase : public FeedbackControllerBase<Robot>
     x_d_ = Eigen::VectorXd::Zero(this->robot_.getState().size());
     this->x_err_ = Eigen::VectorXd::Zero(this->robot_.getState().size());
     x_err_last_ = Eigen::VectorXd::Zero(this->robot_.getState().size());
-
   }
+  
  protected:
 
   virtual void calculateError()
@@ -87,7 +84,6 @@ class PIDControllerBase : public FeedbackControllerBase<Robot>
 
   virtual void calculateIntegral()
   {
-
     Eigen::VectorXd delta = (this->x_err_ + this->x_err_last_) / 2 * this->dt_;
 
     for (int i = 0; i < integral_.size(); i++) {
@@ -99,7 +95,6 @@ class PIDControllerBase : public FeedbackControllerBase<Robot>
         integral_[i] += delta[i];
       }
     }
-
   }
 
  protected:
@@ -120,6 +115,5 @@ class PIDControllerBase : public FeedbackControllerBase<Robot>
   Eigen::VectorXd integral_;
   Eigen::VectorXd integralLimit_;
 
-}
-;
+};
 }
