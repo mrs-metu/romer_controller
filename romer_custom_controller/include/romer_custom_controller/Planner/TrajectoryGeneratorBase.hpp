@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include "robot_container/RobotModuleContainerBase.hpp"
-#include "ros_node_utils/RosNodeModuleBase.hpp"
+#include <robot_container/RobotModuleContainerBase.hpp>
+#include <romer_node_utils/RosNodeModuleBase.hpp>
 #include <string>
 
 template <typename Robot>
 class TrajectoryGeneratorBase : public RosNodeModuleBase {
 public:
-  TrajectoryGeneratorBase(ros::NodeHandle *nodeHandle, Robot &robot)
-      : RosNodeModuleBase(nodeHandle), robot_(robot),
+  TrajectoryGeneratorBase(const std::string& node_name, Robot &robot)
+      : RosNodeModuleBase(node_name), robot_(robot),
         name_("trajectory_generator_base"), referencePointChanged_(false) {}
   virtual ~TrajectoryGeneratorBase() {}
 
