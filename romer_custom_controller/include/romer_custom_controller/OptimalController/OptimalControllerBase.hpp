@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "ros_custom_controller/ControllerBase.hpp"
+#include "romer_custom_controller/ControllerBase.hpp"
 
 #include <ctime>
 
@@ -17,8 +17,8 @@ template<typename Robot>
 class OptimalControllerBase : public ControllerBase<Robot>
 {
  public:
-  OptimalControllerBase(ros::NodeHandle* nodeHandle, Robot& robot)
-      : ControllerBase<Robot>(nodeHandle,robot)
+  OptimalControllerBase(const std::string& node_name, Robot& robot)
+      : ControllerBase<Robot>(node_name, robot)
   {
   }
 
