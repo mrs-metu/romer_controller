@@ -7,24 +7,24 @@
  */
 #pragma once
 
-#include <ros/ros.h>
-#include <boost/thread.hpp>
-#include <boost/chrono.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <thread>
+#include <chrono>
 #include <math.h>
 #include <memory>
 #include <mutex>
 #include <Eigen/Dense>
-#include "ros_node_utils/RosNodeModuleBase.hpp"
+#include "romer_node_utils/RosNodeModuleBase.hpp"
 
-using namespace ros_node_utils;
+using namespace romer_node_utils;
 
 namespace controller {
 template<typename Robot>
 class ControllerBase: public RosNodeModuleBase
 {
  public:
-  ControllerBase(ros::NodeHandle* nodeHandle, Robot& robot)
-      : RosNodeModuleBase(nodeHandle),
+  ControllerBase(const std::string& node_name, Robot& robot)
+      : RosNodeModuleBase(node_name),
         isSimulation_(true),
         dt_(0.0),
         controllerRate_(0),
@@ -32,9 +32,7 @@ class ControllerBase: public RosNodeModuleBase
   {
   }
 
-  virtual ~ControllerBase()
-  {
-  }
+  virtual ~ControllerBase() = default;
 
 
   virtual void create()
@@ -47,10 +45,21 @@ class ControllerBase: public RosNodeModuleBase
 
   virtual void readParameters()
   {
-    paramRead(this->nodeHandle_, "/simulation", isSimulation_);
-    if (!isSimulation_) {
+
+    robot_.getNode()->declare_parameter("simulation", true);
+    robot_.getNode()->declare_parameter("controller/rate", 100.0);
+
+    // Then read them using paramRead
+    rclcpp::Parameter sim_param;
+    rclcpp::Parameter rate_param;
+    
+    if (paramRead(robot_.getNode(), "simulation", sim_param)) {
+      isSimulation_ = sim_param.as_bool();
     }
-    paramRead(this->nodeHandle_, "/" + this->namespace_ + "/controller/rate", controllerRate_);
+
+    if (paramRead(robot_.getNode(), "controller/rate", rate_param)) {
+      controllerRate_ = rate_param.as_double();
+    }
     dt_ = 1.0 / controllerRate_;
    //CONFIRM("readParameters : [Controller_Base]");
   }
@@ -75,9 +84,6 @@ class ControllerBase: public RosNodeModuleBase
 
   bool isSimulation_;
 
-  std::vector<ros::Publisher> publishers_;
-  std::vector<ros::Subscriber> subscribers_;
-
   Robot& robot_;
 };
-}  // namespace estimator
+}  // namespace controller
