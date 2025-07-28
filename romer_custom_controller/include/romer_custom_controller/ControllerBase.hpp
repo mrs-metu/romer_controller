@@ -14,7 +14,7 @@
 #include <memory>
 #include <mutex>
 #include <Eigen/Dense>
-#include "romer_node_utils/RosNodeModuleBase.hpp"
+#include <romer_node_utils/RosNodeModuleBase.hpp>
 
 using namespace romer_node_utils;
 

@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "romer_custom_controller/ControllerBase.hpp"
+#include <romer_custom_controller/ControllerBase.hpp>
 
 #include <ctime>
 
