@@ -13,8 +13,8 @@
   <depend>std_srvs</depend>
   <depend>romer_node_utils</depend>
   <depend>robot_container</depend>
-  <depend>ros_custom_estimator</depend>
-  <depend>ros_custom_hardware_adapter</depend>
+  <depend>romer_custom_estimator</depend>
+  <depend>romer_custom_hardware_adapter</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

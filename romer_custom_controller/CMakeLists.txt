@@ -17,8 +17,8 @@ find_package(std_srvs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(romer_node_utils REQUIRED)
 find_package(robot_container REQUIRED)
-find_package(ros_custom_estimator REQUIRED)
-find_package(ros_custom_hardware_adapter REQUIRED)
+find_package(romer_custom_estimator REQUIRED)
+find_package(romer_custom_hardware_adapter REQUIRED)
 
 include_directories(
   include
@@ -37,8 +37,8 @@ ament_export_dependencies(
   std_srvs
   romer_node_utils
   robot_container
-  ros_custom_estimator
-  ros_custom_hardware_adapter
+  romer_custom_estimator
+  romer_custom_hardware_adapter
 )
 
 ament_package()
