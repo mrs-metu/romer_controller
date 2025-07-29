@@ -1,22 +1,21 @@
 #pragma once
 
-#include "ros_node_utils/RosNodeModuleBase.hpp"
+#include <romer_node_utils/RosNodeModuleBase.hpp>
 
-#include <ros/ros.h>
-#include <boost/thread.hpp>
-#include <boost/chrono.hpp>
+
+#include <thread>
+#include <chrono>
 #include <math.h>
 #include <memory>
 #include <mutex>
-#include <ctime>
 #include <Eigen/Dense>
 
-#include "std_msgs/Float64MultiArray.h"
+#include <std_msgs/msg/float64_multi_array.hpp>
 
-#include "robot_container/SetState.h"
-#include "robot_container/RobotContainerBase.hpp"
+#include "robot_container/srv/set_state.hpp"
+#include "RobotContainerBase.hpp"
 
-using namespace ros_node_utils;
+using namespace romer_node_utils;
 namespace robot {
 struct TrajectoryPoint
 {
@@ -38,11 +37,11 @@ class RobotModuleContainerBase : public RosNodeModuleBase
   /*! \~english
    * @brief Constructor
    * @details
-   * @param[in] nodeHandle pointer to the nodeHandle
+   * @param[in] node_name the name for the ROS 2 node
    */
-  RobotModuleContainerBase(ros::NodeHandle *nodeHandle)
+  RobotModuleContainerBase(const std::string& node_name)
       :
-      RosNodeModuleBase(nodeHandle),
+      RosNodeModuleBase(node_name),
       n_(0),
       m_(0),
       trajectoryLength_(2),
@@ -74,8 +73,10 @@ class RobotModuleContainerBase : public RosNodeModuleBase
    */
   virtual void readParameters() override
   {
-    paramRead(this->nodeHandle_, "/simulation", isSimulation_);
-    if (!isSimulation_) {
+    this->declare_parameter("simulation", true);
+    rclcpp::Parameter sim_param;
+    if (paramRead(*this, "simulation", sim_param)) {
+      isSimulation_ = sim_param.as_bool();
     }
   }
 
