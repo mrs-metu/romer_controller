@@ -40,17 +40,26 @@ class PIDControllerBase : public FeedbackControllerBase<Robot>
     FeedbackControllerBase<Robot>::readParameters();
     
     // Declare all parameters with default values
+    // For now this is for robots' parameters not the controller's parameters check if this is correct TODO:
     std::vector<double> default_gains(this->robot_.getState().size(), 0.0);
-    this->robot_.getNode()->declare_parameter("controller/P_Controller/KP", default_gains);
-    this->robot_.getNode()->declare_parameter("controller/P_Controller/KI", default_gains);
-    this->robot_.getNode()->declare_parameter("controller/P_Controller/KD", default_gains);
-    this->robot_.getNode()->declare_parameter("controller/P_Controller/integral_limit", default_gains);
+    this->robot_.declare_parameter("controller/P_Controller/KP", default_gains);
+    this->robot_.declare_parameter("controller/P_Controller/KI", default_gains);
+    this->robot_.declare_parameter("controller/P_Controller/KD", default_gains);
+    this->robot_.declare_parameter("controller/P_Controller/integral_limit", default_gains);
 
     // Read parameters
-    paramRead(this->robot_.getNode(), "controller/P_Controller/KP", k_p_);
-    paramRead(this->robot_.getNode(), "controller/P_Controller/KI", k_i_);
-    paramRead(this->robot_.getNode(), "controller/P_Controller/KD", k_d_);
-    paramRead(this->robot_.getNode(), "controller/P_Controller/integral_limit", integralLimit_);
+    if (paramRead(this->robot_, "controller/P_Controller/KP", k_p)){
+      k_p_ = k_p;
+    }
+    if (paramRead(this->robot_, "controller/P_Controller/KI", k_i)){
+      k_i_ = k_i;
+    }
+    if (paramRead(this->robot_, "controller/P_Controller/KD", k_d)){
+      k_d_ = k_d;
+    }
+    if (paramRead(this->robot_, "controller/P_Controller/integral_limit", integralLimit)){
+      integralLimit_ = integralLimit;
+    }
   }
 
   virtual void initialize(){

@@ -46,7 +46,7 @@
      run_ = false;
      dt_ = 0.0;
  
-     robot_ = std::make_unique<Robot>(this->get_node_name());
+     robot_ = std::make_unique<Robot>(this->get_name());
      robot_->create();
    }
  
@@ -55,18 +55,18 @@
      RosNodeModuleBase::readParameters();
      
      // First declare the parameters
-     robot_->getNode()->declare_parameter("simulation", true);
-     robot_->getNode()->declare_parameter("controller/rate", 100.0);
+     this->declare_parameter("simulation", true);
+     this->declare_parameter("controller/rate", 100.0);
  
      // Then read them using paramRead
      rclcpp::Parameter sim_param;
      rclcpp::Parameter rate_param;
      
-     if (paramRead(*robot_->getNode(), "simulation", sim_param)) {
+     if (paramRead(this, "simulation", sim_param)) {
        isSimulation_ = sim_param.as_bool();
      }
      
-     if (paramRead(*robot_->getNode(), "controller/rate", rate_param)) {
+     if (paramRead(this, "controller/rate", rate_param)) {
        controllerRate_ = rate_param.as_double();
      }
  

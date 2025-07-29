@@ -50,7 +50,7 @@ public:
     }
 
     rclcpp::Parameter name_param;
-    if (paramRead(this->getNode(), "planner/trajectory_generator_name", name_param)) {
+    if (paramRead(this, "planner/trajectory_generator_name", name_param)) {
       generatorName_ = name_param.as_string();
     }
 
@@ -104,7 +104,7 @@ public:
 
   void addTrajectoryGenerator(
       std::unique_ptr<TrajectoryGeneratorBase<Robot>> generator) {
-    generatorNameList_.push_back(generator->getName());
+    generatorNameList_.push_back(generator->get_name());
     trajectoryGenerators_.push_back(std::move(generator));
   }
 
@@ -188,7 +188,7 @@ protected:
   }
 
 protected:
-  std::shared_ptr<rclcpp::Subscription<std_msgs::msg::String>> trajectorySubscriber_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr trajectorySubscriber_;
   std::vector<std::unique_ptr<TrajectoryGeneratorBase<Robot>>>
       trajectoryGenerators_;
   std::vector<std::string> generatorNameList_;
