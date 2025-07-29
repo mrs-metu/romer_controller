@@ -11,24 +11,24 @@
 #include <string>
 #include <unordered_map>
 
-#include "std_msgs/String.h"
+#include <std_msgs/msg/string.hpp>
 
-#include "ros_custom_controller/Planner/TrajectoryGeneratorBase.hpp"
-#include "ros_node_utils/RosNodeModuleBase.hpp"
-#include "ros_node_utils/ros_node_utils.hpp"
+#include <romer_custom_controller/Planner/TrajectoryGeneratorBase.hpp>
+#include <romer_node_utils/RosNodeModuleBase.hpp>
+#include <romer_node_utils/ros_node_utils.hpp>
 
-using namespace ros_node_utils;
+using namespace romer_node_utils;
 
 template <typename Robot> class TrajectoryManager : public RosNodeModuleBase {
 public:
-  TrajectoryManager(ros::NodeHandle *nodeHandle)
-      : RosNodeModuleBase(nodeHandle),
+  TrajectoryManager(const std::string& node_name)
+      : RosNodeModuleBase(node_name),
         generatorNameList_(std::vector<std::string>()),
         trajectoryGenerators_(
             std::vector<std::unique_ptr<TrajectoryGeneratorBase<Robot>>>()),
         generatorId_(-1) {}
 
-  ~TrajectoryManager() {}
+  ~TrajectoryManager() = default;
 
   void create() {
     for (int i = 0; i < generatorNameList_.size(); i++) {
@@ -49,14 +49,13 @@ public:
       trajectoryGenerators_[i]->readParameters();
     }
 
-    std::string name;
-    paramRead(getNodeHandle(),
-              "/" + this->namespace_ + "/planner/trajectory_generator_name",
-              name);
+    rclcpp::Parameter name_param;
+    if (paramRead(this->getNode(), "planner/trajectory_generator_name", name_param)) {
+      generatorName_ = name_param.as_string();
+    }
 
     for (int i = 0; i < generatorNameList_.size(); i++) {
-      if (generatorNameList_[i] == name) {
-        generatorName_ = name;
+      if (generatorNameList_[i] == generatorName_) {
         generatorId_ = i;
         break;
       }
@@ -78,9 +77,8 @@ public:
   }
 
   void initializeSubscribers() {
-    trajectorySubscriber_ = getNodeHandle()->subscribe(
-        "/" + this->namespace_ + "/planner/trajector_manager", 1,
-        &TrajectoryManager::trajectoryManagerCallback, this);
+    trajectorySubscriber_ = this->create_subscription<std_msgs::msg::String>(
+      "/planner/trajector_manager", 10, std::bind(&TrajectoryManager::trajectoryManagerCallback, this, std::placeholders::_1));
     for (int i = 0; i < generatorNameList_.size(); i++) {
       trajectoryGenerators_[i]->initializeSubscribers();
     }
@@ -190,8 +188,7 @@ protected:
   }
 
 protected:
-  ros::Subscriber trajectorySubscriber_;
-
+  std::shared_ptr<rclcpp::Subscription<std_msgs::msg::String>> trajectorySubscriber_;
   std::vector<std::unique_ptr<TrajectoryGeneratorBase<Robot>>>
       trajectoryGenerators_;
   std::vector<std::string> generatorNameList_;
