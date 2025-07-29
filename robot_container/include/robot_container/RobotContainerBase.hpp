@@ -8,54 +8,49 @@
 
 #pragma once
 
-#include <ros/ros.h>
-#include <boost/thread.hpp>
-#include <boost/chrono.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <thread>
+#include <chrono>
 #include <math.h>
 #include <memory>
 #include <mutex>
-
-#include <ctime>
 #include <Eigen/Dense>
 
-#include "ros_node_utils/RosNodeModuleBase.hpp"
-#include "ros_custom_hardware_adapter/HardwareBase.hpp"
+#include <romer_node_utils/RosNodeModuleBase.hpp>
 
-using namespace ros_node_utils;
+using namespace romer_node_utils;
 
 namespace robot {
 
 class RobotContainerBase : public RosNodeModuleBase
 {
  public:
-  RobotContainerBase(ros::NodeHandle* nodeHandle)
-      : RosNodeModuleBase(nodeHandle),
+  RobotContainerBase(const std::string& node_name)
+      : RosNodeModuleBase(node_name),
         dt_(0.0),
         isSimulation_(true),
         stateMutex_()
   {
   }
 
+  virtual ~RobotContainerBase() = default;
 
-  virtual ~RobotContainerBase()
-  {
-  }
-
-
-  virtual void create()
+  virtual void create() override
   {
     RosNodeModuleBase::create();
    //CONFIRM("create : [Robot_Container_Base]");
   }
 
-  virtual void readParameters()
+  virtual void readParameters() override
   {
-    paramRead(this->nodeHandle_,"/simulation", isSimulation_);
-    if (!isSimulation_) {
+    this->declare_parameter("simulation", true);
+    
+    rclcpp::Parameter sim_param;
+    if (paramRead(*this, "simulation", sim_param)) {
+      isSimulation_ = sim_param.as_bool();
     }
    //CONFIRM("readParameters : [Robot_Container_Base]");
   }
-  ;
 
   virtual void initialize() override
   {
@@ -68,7 +63,6 @@ class RobotContainerBase : public RosNodeModuleBase
     RosNodeModuleBase::shutdown();
    //ERROR("shutdown : [Robot_container_base]");
   }
-
 
   virtual void initializePublishers() override
   {
@@ -89,24 +83,19 @@ class RobotContainerBase : public RosNodeModuleBase
   {
   }
 
-
   virtual void publish()
   {
   }
-
 
   virtual void setTimeStep(double dt)
   {
     dt_ = dt;
   }
-  
 
  protected:
-
-
   bool isSimulation_;
   std::mutex* stateMutex_;
   double dt_;
-
 };
-}
+
+} // namespace robot
