@@ -1,8 +1,8 @@
-#goal definition
+# Goal definition
 trajectory_msgs/JointTrajectoryPoint[] trajectory
 ---
-#result definition
-bool      succeed
+# Result definition
+bool succeed
 ---
-#feedback
-string    reply
+# Feedback definition
+string reply
