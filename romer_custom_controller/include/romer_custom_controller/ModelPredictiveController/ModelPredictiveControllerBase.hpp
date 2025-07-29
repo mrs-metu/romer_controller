@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ros_custom_controller/ControllerBase.hpp"
+#include <romer_custom_controller/ControllerBase.hpp>
 
 #include <ctime>
 
@@ -14,19 +14,17 @@ template<typename Robot>
 class ModelPredictiveControllerBase : public ControllerBase<Robot>
 {
  public:
-  ModelPredictiveControllerBase(ros::NodeHandle* nodeHandle, Robot& robot)
-      : ControllerBase<Robot>(nodeHandle, robot),
+  ModelPredictiveControllerBase(const std::string& node_name, Robot& robot)
+      : ControllerBase<Robot>(node_name, robot),
         horizonLength_(2),
         time_stop_(0.0),
         time_stop_ros_(0.0)
   {
     time_start_ = clock();
-    time_start_ros_ = ros::Time::now().toSec();
+    time_start_ros_ = this->robot_.now().seconds();
   }
 
-  virtual ~ModelPredictiveControllerBase()
-  {
-  }
+  virtual ~ModelPredictiveControllerBase() = default;
 
   virtual void create() override
   {
@@ -61,44 +59,57 @@ class ModelPredictiveControllerBase : public ControllerBase<Robot>
     int n = this->robot_.getN();
     int m = this->robot_.getM();
 
+    // Initialize matrices with proper sizes
     Eigen::MatrixXd P = Eigen::MatrixXd::Zero(n, n);
     Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(n, n);
     Eigen::MatrixXd R = Eigen::MatrixXd::Zero(m, m);
-    double* ptr;
 
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/N",
-                              horizonLength_);
+    // Declare parameters
+    this->declare_parameter("controller/MPC/N", 2);
+    this->declare_parameter("controller/MPC/P", std::vector<double>());
+    this->declare_parameter("controller/MPC/Q", std::vector<double>());
+    this->declare_parameter("controller/MPC/R", std::vector<double>());
+    this->declare_parameter("controller/MPC/b_x", std::vector<double>());
+    this->declare_parameter("controller/MPC/A_x", std::vector<double>());
+    this->declare_parameter("controller/MPC/b_f", std::vector<double>());
+    this->declare_parameter("controller/MPC/A_f", std::vector<double>());
+    this->declare_parameter("controller/MPC/b_u", std::vector<double>());
+    this->declare_parameter("controller/MPC/A_u", std::vector<double>());
 
-    this->robot_.setTrajectoryLength(horizonLength_);
-    int N = horizonLength_;
+    // For int parameter, need to use rclcpp::Parameter
+    rclcpp::Parameter N_param;
+    if (paramRead(this, "controller/MPC/N", N_param)) {
+        horizonLength_ = N_param.as_int();
+        this->robot_.setTrajectoryLength(horizonLength_);
+    }
 
     CONFIRM("n : " + std::to_string(n));
     CONFIRM("m : " + std::to_string(m));
-    CONFIRM("N : " + std::to_string(N));
+    CONFIRM("N : " + std::to_string(horizonLength_));
 
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/P", P);
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/Q", Q);
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/R", R);
-    setCostMatrices(P, Q, R);
+    // These are fine as they match the overload types
+    if (paramRead(this, "controller/MPC/P", P) &&
+        paramRead(this, "controller/MPC/Q", Q) &&
+        paramRead(this, "controller/MPC/R", R)) {
+        setCostMatrices(P, Q, R);
+    }
 
+    // These are fine as they match the overload types
+    paramRead(this, "controller/MPC/b_x", b_x_);
+    paramRead(this, "controller/MPC/A_x", A_x_);
+    paramRead(this, "controller/MPC/b_f", b_f_);
+    paramRead(this, "controller/MPC/A_f", A_f_);
+    paramRead(this, "controller/MPC/b_u", b_u_);
+    paramRead(this, "controller/MPC/A_u", A_u_);
 
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/b_x", b_x_);
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/A_x", A_x_, b_x_.size());
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/b_f", b_f_);
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/A_f", A_f_, b_f_.size());
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/b_u", b_u_);
-    ros_node_utils::paramRead(this->nodeHandle_ , "/" + this->namespace_ + "/controller/MPC/A_u", A_u_, b_u_.size());
-
-
-
+    // Debug output
     std::cerr << b_x_.transpose() << std::endl;
     std::cerr << A_x_ << std::endl;
     std::cerr << b_f_.transpose() << std::endl;
     std::cerr << A_f_ << std::endl;
     std::cerr << b_u_.transpose() << std::endl;
     std::cerr << A_u_ << std::endl;
-
-  }
+}
 
   virtual void advance(double dt) override
   {
