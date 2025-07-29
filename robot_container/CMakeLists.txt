@@ -1,65 +1,45 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(robot_container)
 
-add_definitions("-std=c++11")
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-find_package(catkin REQUIRED
-  COMPONENTS
-    ros_node_utils
-    message_generation
-    std_msgs
-    ros_node_utils
-    roscpp
-    actionlib_msgs
-    actionlib
-    trajectory_msgs
-)
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(romer_node_utils REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED)
 
-
-add_action_files(
-  DIRECTORY
-    action
-  FILES
-    ControllerTrajectory.action
-)
-
-add_service_files(
-  FILES
-    SetState.srv
-)
-add_message_files(
-  FILES
-    State.msg
-)
-generate_messages(
-  DEPENDENCIES actionlib_msgs std_msgs   trajectory_msgs
-)
-
-catkin_package(
-	INCLUDE_DIRS
-	  include
-	  ${EIGEN3_INCLUDE_DIR}
-	  ${boost_INCLUDE_DIR}
-	LIBRARIES
-	CATKIN_DEPENDS
-	  ros_node_utils
-	  roscpp
-	  message_generation
-	  std_msgs
+# Generate interfaces
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/State.msg"
+  "srv/SetState.srv"
+  "action/ControllerTrajectory.action"
+  DEPENDENCIES
+    std_msgs
     trajectory_msgs
-    actionlib_msgs
+    action_msgs
+    builtin_interfaces
 )
 
-include_directories(
-  include
-  ${EIGEN3_INCLUDE_DIR}
-  ${Boost_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-)
+# Export dependencies
+ament_export_include_directories(include)
 
+# Install header files
 install(
-  DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DIRECTORY include/
+  DESTINATION include
 )
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()
