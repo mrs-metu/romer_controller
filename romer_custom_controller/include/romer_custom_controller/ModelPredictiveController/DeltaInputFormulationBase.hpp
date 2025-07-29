@@ -1,9 +1,6 @@
 #pragma once
 
-#include "ros_custom_controller/ModelPredictiveController/ModelPredictiveControllerBase.hpp"
-
-#include <ctime>
-
+#include <romer_custom_controller/ModelPredictiveController/ModelPredictiveControllerBase.hpp>
 #include <Eigen/Core>
 #include "ooqp_eigen_interface/QuadraticProblemFormulation.hpp"
 #include "ooqp_eigen_interface/OoqpEigenInterface.hpp"
@@ -14,44 +11,37 @@ template<typename Robot>
 class DeltaInputFormulationBase : public ModelPredictiveControllerBase<Robot>
 {
  public:
-  DeltaInputFormulationBase()
-      : ModelPredictiveControllerBase<Robot>()
+  DeltaInputFormulationBase(const std::string& node_name, Robot& robot)
+      : ModelPredictiveControllerBase<Robot>(node_name, robot)
   {
   }
-  ;
 
-  virtual ~DeltaInputFormulationBase()
+  virtual ~DeltaInputFormulationBase() = default;
+
+  virtual void create() override
   {
+    ModelPredictiveControllerBase<Robot>::create();
   }
-  ;
 
-  virtual void create(Robot* r) override
+  virtual void initialize() override
   {
-    ModelPredictiveControllerBase<Robot>::create(r);
-  }
-  ;
-
-  virtual void initialize(ros::NodeHandle* nodeHandle) override
-  {
-    ModelPredictiveControllerBase<Robot>::initialize(nodeHandle);
+    ModelPredictiveControllerBase<Robot>::initialize();
   }
 
   virtual void readParameters() override
   {
     ModelPredictiveControllerBase<Robot>::readParameters();
   }
-  ;
 
  protected:
-
   virtual void initializeCostMatrixes() override
   {
     int n_x = this->b_x_.size();
     int n_u = this->b_u_.size();
     int n_f = this->b_f_.size();
     int N = this->horizonLength_;
-    int n = this->robot_->getN();
-    int m = this->robot_->getM();
+    int n = this->robot_.getN();
+    int m = this->robot_.getM();
 
     Eigen::MatrixXd temp = Eigen::MatrixXd::Zero(n, n);
 
@@ -108,6 +98,7 @@ class DeltaInputFormulationBase : public ModelPredictiveControllerBase<Robot>
       }
       w_upper.segment(i * n_u, n_u) = this->b_u_;
     }
+
     // LOWER PART OF CONSTRAINS
     w_lower.segment(0, n_x) = this->b_x_;
     E_lower.block(0, 0, n_x, n) = -this->A_x_;
@@ -158,40 +149,37 @@ class DeltaInputFormulationBase : public ModelPredictiveControllerBase<Robot>
     //*/
   }
 
-  ;
 
   virtual void calculateCostMatrixes() override
   {
-    Eigen::VectorXd delta_x = this->robot_->getState() - this->robot_->getDesiredState();
-    Eigen::VectorXd u = this->robot_->getInput();
-    int n = this->robot_->getN();
-    int m = this->robot_->getM();
+    Eigen::VectorXd delta_x = this->robot_.getState() - this->robot_.getDesiredState();
+    Eigen::VectorXd u = this->robot_.getInput();
+    int n = this->robot_.getN();
+    int m = this->robot_.getM();
     this->q_ = delta_x.transpose() * this->F_ + u.transpose() * this->F_U_;
     this->b_ = (this->W_ + this->E_.block(0, 0, this->E_.rows(), n) * delta_x
         + this->E_.block(0, n, this->E_.rows(), m) * u);
   }
-  ;
 
   virtual void setCommand() override
   {
-    this->robot_->setInput(
-        this->robot_->getInput() + this->solution_.segment(0, this->robot_->getM()));
+    this->robot_.setInput(
+        this->robot_.getInput() + this->solution_.segment(0, this->robot_.getM()));
     // TODO : Use this solution for warm start in future
     //this->solution_.segment(0, this->solution_.size() - this->robot_->getM()) = this->solution_
     //    .segment(this->robot_->getM(), this->solution_.size());
     //this->solution_.segment(this->solution_.size() - this->robot_->getM(), this->solution_.size()) =
      //   Eigen::VectorXd::Zero(this->robot_->getM());
   }
-  ;
 
  public:
   Eigen::MatrixXd getFu()
   {
     return this->F_U_;
   }
- protected:
 
+ protected:
   Eigen::MatrixXd F_U_;
-}
-;
-}
+};
+
+} // namespace controller
