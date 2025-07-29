@@ -53,15 +53,16 @@ class ControllerBase: public RosNodeModuleBase
     rclcpp::Parameter sim_param;
     rclcpp::Parameter rate_param;
     
-    if (paramRead(this, "simulation", sim_param)) {
+    if (paramRead(*this, "simulation", sim_param)) {
       isSimulation_ = sim_param.as_bool();
     }
 
-    if (paramRead(this, "controller/rate", rate_param)) {
+    if (paramRead(*this, "controller/rate", rate_param)) {
       controllerRate_ = rate_param.as_double();
     }
     dt_ = 1.0 / controllerRate_;
-   //CONFIRM("readParameters : [Controller_Base]");
+    rate_ = std::make_shared<rclcpp::Rate>(controllerRate_);
+    // CONFIRM("readParameters : [Controller_Base]");
   }
 
   virtual void advance(double dt)
@@ -81,9 +82,11 @@ class ControllerBase: public RosNodeModuleBase
   std::mutex mutex_;
   double dt_;
   double controllerRate_;
+  std::shared_ptr<rclcpp::Rate> rate_;
 
   bool isSimulation_;
 
   Robot& robot_;
 };
-}  // namespace controller
+
+} // namespace controller

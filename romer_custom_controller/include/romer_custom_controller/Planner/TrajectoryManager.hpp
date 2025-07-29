@@ -50,7 +50,7 @@ public:
     }
 
     rclcpp::Parameter name_param;
-    if (paramRead(this, "planner/trajectory_generator_name", name_param)) {
+    if (paramRead(*this, "planner/trajectory_generator_name", name_param)) {
       generatorName_ = name_param.as_string();
     }
 

@@ -62,11 +62,11 @@
      rclcpp::Parameter sim_param;
      rclcpp::Parameter rate_param;
      
-     if (paramRead(this, "simulation", sim_param)) {
+     if (paramRead(*this, "simulation", sim_param)) {
        isSimulation_ = sim_param.as_bool();
      }
      
-     if (paramRead(this, "controller/rate", rate_param)) {
+     if (paramRead(*this, "controller/rate", rate_param)) {
        controllerRate_ = rate_param.as_double();
      }
  

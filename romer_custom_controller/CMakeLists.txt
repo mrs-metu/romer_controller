@@ -17,12 +17,22 @@ find_package(std_srvs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(romer_node_utils REQUIRED)
 find_package(robot_container REQUIRED)
-find_package(romer_custom_estimator REQUIRED)
-find_package(romer_custom_hardware_adapter REQUIRED)
+# find_package(romer_custom_estimator REQUIRED)
+# find_package(romer_custom_hardware_adapter REQUIRED)
 
 include_directories(
   include
   ${EIGEN3_INCLUDE_DIR}
+  ${romer_node_utils_INCLUDE_DIRS}
+  ${robot_container_INCLUDE_DIRS}
+)
+
+add_executable(testing test/test.cpp)
+
+ament_target_dependencies(testing
+  rclcpp
+  romer_node_utils
+  robot_container
 )
 
 # Install
