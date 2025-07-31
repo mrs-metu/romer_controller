@@ -2,8 +2,6 @@
 
 #include <romer_custom_controller/ModelPredictiveController/ModelPredictiveControllerBase.hpp>
 #include <Eigen/Core>
-#include "ooqp_eigen_interface/QuadraticProblemFormulation.hpp"
-#include "ooqp_eigen_interface/OoqpEigenInterface.hpp"
 
 namespace controller {
 

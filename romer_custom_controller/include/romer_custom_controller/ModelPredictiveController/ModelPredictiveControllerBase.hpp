@@ -6,8 +6,6 @@
 
 #include <Eigen/Core>
 
-#include <ooqp_eigen_interface/OoqpEigenInterface.hpp>
-
 namespace controller {
 
 template<typename Robot>
@@ -253,9 +251,9 @@ class ModelPredictiveControllerBase : public ControllerBase<Robot>
 
   virtual void solveQuadraticOptimization()
   {
-    time_start_ = clock();
-    ooqpei::OoqpEigenInterface::solve(H_, q_, G_, b_, solution_, true);
-    std::cout << "Time: " << (clock()-time_start_)/double(CLOCKS_PER_SEC) << " sec "<<std::endl;
+    // time_start_ = clock();
+    // ooqpei::OoqpEigenInterface::solve(H_, q_, G_, b_, solution_, true);
+    // std::cout << "Time: " << (clock()-time_start_)/double(CLOCKS_PER_SEC) << " sec "<<std::endl;
   }
 
   virtual void setCommand()
