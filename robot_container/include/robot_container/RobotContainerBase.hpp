@@ -25,11 +25,11 @@ namespace robot {
 class RobotContainerBase : public RosNodeModuleBase
 {
  public:
-  RobotContainerBase(const std::string& node_name)
-      : RosNodeModuleBase(node_name),
+  RobotContainerBase(rclcpp::Node::SharedPtr node)
+      : RosNodeModuleBase(node),
         dt_(0.0),
         isSimulation_(true),
-        stateMutex_()
+        stateMutex_(std::make_unique<std::mutex>())
   {
   }
 
@@ -43,10 +43,11 @@ class RobotContainerBase : public RosNodeModuleBase
 
   virtual void readParameters() override
   {
-    this->declare_parameter("simulation", true);
+    RosNodeModuleBase::readParameters();
+    getNode()->declare_parameter("simulation", true);
     
     rclcpp::Parameter sim_param;
-    if (paramRead(*this, "simulation", sim_param)) {
+    if (paramRead(*getNode(), "simulation", sim_param)) {
       isSimulation_ = sim_param.as_bool();
     }
    //CONFIRM("readParameters : [Robot_Container_Base]");
@@ -94,7 +95,7 @@ class RobotContainerBase : public RosNodeModuleBase
 
  protected:
   bool isSimulation_;
-  std::mutex* stateMutex_;
+  std::unique_ptr<std::mutex> stateMutex_;
   double dt_;
 };
 

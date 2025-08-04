@@ -39,16 +39,16 @@ class RobotModuleContainerBase : public RosNodeModuleBase
    * @details
    * @param[in] node_name the name for the ROS 2 node
    */
-  RobotModuleContainerBase(const std::string& node_name)
+  RobotModuleContainerBase(rclcpp::Node::SharedPtr node)
       :
-      RosNodeModuleBase(node_name),
+      RosNodeModuleBase(node),
       n_(0),
       m_(0),
       trajectoryLength_(2),
       dt_(0.0),
       isSimulation_(false),
-      stateMutex_(new std::mutex()),
-      trajectoryMutex_(new std::mutex())
+      stateMutex_(std::make_unique<std::mutex>()),
+      trajectoryMutex_(std::make_unique<std::mutex>())
   {
   }
 
@@ -73,9 +73,9 @@ class RobotModuleContainerBase : public RosNodeModuleBase
    */
   virtual void readParameters() override
   {
-    this->declare_parameter("simulation", true);
+    getNode()->declare_parameter("simulation", true);
     rclcpp::Parameter sim_param;
-    if (paramRead(*this, "simulation", sim_param)) {
+    if (paramRead(*getNode(), "simulation", sim_param)) {
       isSimulation_ = sim_param.as_bool();
     }
   }
@@ -221,7 +221,7 @@ class RobotModuleContainerBase : public RosNodeModuleBase
    * @brief getter for state mutex
    * @details
    */
-  std::mutex* getStateMutex()
+   std::unique_ptr<std::mutex>& getStateMutex()
   {
     return stateMutex_;
   }
@@ -326,7 +326,7 @@ class RobotModuleContainerBase : public RosNodeModuleBase
    * @brief getter for trajectory mutex
    * @details
    */
-  std::mutex* getTrajectoryMutex()
+   std::unique_ptr<std::mutex>& getTrajectoryMutex()
   {
     return trajectoryMutex_;
   }
@@ -418,8 +418,8 @@ class RobotModuleContainerBase : public RosNodeModuleBase
 
   // VARIABLES
  protected:
-  std::mutex *stateMutex_;
-  std::mutex *trajectoryMutex_;
+  std::unique_ptr<std::mutex> stateMutex_;
+  std::unique_ptr<std::mutex> trajectoryMutex_;
 
 
   double dt_;
