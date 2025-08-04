@@ -9,8 +9,8 @@ namespace robot {
   class TestRobotContainer : public RobotModuleContainerBase
   {
    public:
-    TestRobotContainer(const std::string& node_name) :
-      RobotModuleContainerBase(node_name) {}
+    TestRobotContainer(rclcpp::Node::SharedPtr node) :
+      RobotModuleContainerBase(node) {}
     virtual ~TestRobotContainer() = default;
     virtual void publish() {}
   };
@@ -18,13 +18,14 @@ namespace robot {
 
 void testMPC()
 {
-  auto robot_ = std::make_unique<robot::TestRobotContainer>("test_robot");
+  auto node = std::make_shared<rclcpp::Node>("test_node");
+  auto robot_ = std::make_unique<robot::TestRobotContainer>(node);
   
   robot_->setN(1);
   robot_->setM(1);
 
   auto controller_ = std::make_unique<controller::ModelPredictiveControllerBase<robot::TestRobotContainer>>(
-    "test_controller", *robot_);
+    node, *robot_);
 
   controller_->create();
 

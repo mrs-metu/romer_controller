@@ -17,8 +17,8 @@ template<typename Robot>
 class OptimalControllerBase : public ControllerBase<Robot>
 {
  public:
-  OptimalControllerBase(const std::string& node_name, Robot& robot)
-      : ControllerBase<Robot>(node_name, robot)
+  OptimalControllerBase(rclcpp::Node::SharedPtr node, Robot& robot)
+      : ControllerBase<Robot>(node, robot)
   {
   }
 

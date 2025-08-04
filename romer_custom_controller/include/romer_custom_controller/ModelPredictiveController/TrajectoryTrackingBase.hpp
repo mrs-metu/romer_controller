@@ -10,8 +10,8 @@ template<typename Robot>
 class TrajectoryTrackingBase : public ModelPredictiveControllerBase<Robot>
 {
  public:
-  TrajectoryTrackingBase(const std::string& node_name, Robot& robot)
-      : ModelPredictiveControllerBase<Robot>(node_name, robot)
+  TrajectoryTrackingBase(rclcpp::Node::SharedPtr node, Robot& robot)
+      : ModelPredictiveControllerBase<Robot>(node, robot)
   {
   }
 

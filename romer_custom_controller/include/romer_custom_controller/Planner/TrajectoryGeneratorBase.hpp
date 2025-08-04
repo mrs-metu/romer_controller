@@ -15,8 +15,8 @@
 template <typename Robot>
 class TrajectoryGeneratorBase : public RosNodeModuleBase {
 public:
-  TrajectoryGeneratorBase(const std::string& node_name, Robot &robot)
-      : RosNodeModuleBase(node_name), robot_(robot),
+  TrajectoryGeneratorBase(rclcpp::Node::SharedPtr node, Robot &robot)
+      : RosNodeModuleBase(node), robot_(robot),
         name_("trajectory_generator_base"), referencePointChanged_(false) {}
   virtual ~TrajectoryGeneratorBase() {}
 

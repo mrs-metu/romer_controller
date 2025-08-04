@@ -25,8 +25,8 @@
  class ControllerFrameBase : public romer_node_utils::RosNodeModuleBase
  {
   public:
-   ControllerFrameBase(const std::string& node_name)
-       : romer_node_utils::RosNodeModuleBase(node_name),
+   ControllerFrameBase(rclcpp::Node::SharedPtr node)
+       : romer_node_utils::RosNodeModuleBase(node),
          controllerRate_(100),
          isSimulation_(true),
          run_(false),
@@ -46,7 +46,7 @@
      run_ = false;
      dt_ = 0.0;
  
-     robot_ = std::make_unique<Robot>(this->get_name());
+     robot_ = std::make_unique<Robot>(getNode());
      robot_->create();
    }
  
@@ -55,18 +55,17 @@
      RosNodeModuleBase::readParameters();
      
      // First declare the parameters
-     this->declare_parameter("simulation", true);
-     this->declare_parameter("controller/rate", 100.0);
+     getNode()->declare_parameter("simulation", true);
+     getNode()->declare_parameter("controller/rate", 100.0);
  
      // Then read them using paramRead
-     rclcpp::Parameter sim_param;
-     rclcpp::Parameter rate_param;
+     rclcpp::Parameter sim_param, rate_param;
      
-     if (paramRead(*this, "simulation", sim_param)) {
+     if (paramRead(*getNode(), "simulation", sim_param)) {
        isSimulation_ = sim_param.as_bool();
      }
      
-     if (paramRead(*this, "controller/rate", rate_param)) {
+     if (paramRead(*getNode(), "controller/rate", rate_param)) {
        controllerRate_ = rate_param.as_double();
      }
  
@@ -94,8 +93,8 @@
      RosNodeModuleBase::initializeServices();
      // Controller Stop Service
  
-     stopServices_ = this->create_service<std_srvs::srv::SetBool>(
-       this->get_name() + std::string("/controller/stop"),
+     stopServices_ = getNode()->create_service<std_srvs::srv::SetBool>(
+      getNode()->get_name() + std::string("/controller/stop"),
        std::bind(&ControllerFrameBase::controllerStopServiceCallback, this,
                 std::placeholders::_1, std::placeholders::_2));
      robot_->initializeServices();

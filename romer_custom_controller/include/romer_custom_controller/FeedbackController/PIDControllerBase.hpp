@@ -17,9 +17,9 @@ template<typename Robot>
 class PIDControllerBase : public FeedbackControllerBase<Robot>
 {
  public:
-  PIDControllerBase(const std::string& node_name, Robot &robot)
+  PIDControllerBase(rclcpp::Node::SharedPtr node, Robot &robot)
       :
-      FeedbackControllerBase<Robot>(node_name, robot)
+      FeedbackControllerBase<Robot>(node, robot)
   {
 
   }

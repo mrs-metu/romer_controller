@@ -9,8 +9,8 @@ template<typename Robot>
 class DeltaInputFormulationBase : public ModelPredictiveControllerBase<Robot>
 {
  public:
-  DeltaInputFormulationBase(const std::string& node_name, Robot& robot)
-      : ModelPredictiveControllerBase<Robot>(node_name, robot)
+  DeltaInputFormulationBase(rclcpp::Node::SharedPtr node, Robot& robot)
+      : ModelPredictiveControllerBase<Robot>(node, robot)
   {
   }
 

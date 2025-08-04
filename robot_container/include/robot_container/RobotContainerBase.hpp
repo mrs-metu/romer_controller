@@ -27,8 +27,8 @@ class RobotContainerBase : public RosNodeModuleBase
  public:
   RobotContainerBase(rclcpp::Node::SharedPtr node)
       : RosNodeModuleBase(node),
-        dt_(0.0),
         isSimulation_(true),
+        dt_(0.0),
         stateMutex_(std::make_unique<std::mutex>())
   {
   }

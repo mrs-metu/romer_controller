@@ -17,8 +17,8 @@ template<typename Robot>
 class FeedbackControllerBase : public ControllerBase<Robot>
 {
  public:
-  FeedbackControllerBase(const std::string& node_name, Robot& robot)
-      : ControllerBase<Robot>(node_name, robot),
+  FeedbackControllerBase(rclcpp::Node::SharedPtr node, Robot& robot)
+      : ControllerBase<Robot>(node, robot),
         time_start_(0.0),
         time_stop_(0.0),
         time_start_ros_(0.0),
@@ -26,7 +26,7 @@ class FeedbackControllerBase : public ControllerBase<Robot>
 
   {
     time_start_ = clock();
-    time_start_ros_ = this->now().seconds();
+    time_start_ros_ = this->getNode()->now().seconds();
   };
 
   virtual ~FeedbackControllerBase() = default;

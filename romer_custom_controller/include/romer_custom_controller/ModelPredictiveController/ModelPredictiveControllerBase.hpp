@@ -12,14 +12,14 @@ template<typename Robot>
 class ModelPredictiveControllerBase : public ControllerBase<Robot>
 {
  public:
-  ModelPredictiveControllerBase(const std::string& node_name, Robot& robot)
-      : ControllerBase<Robot>(node_name, robot),
+  ModelPredictiveControllerBase(rclcpp::Node::SharedPtr node, Robot& robot)
+      : ControllerBase<Robot>(node, robot),
         horizonLength_(2),
         time_stop_(0.0),
         time_stop_ros_(0.0)
   {
     time_start_ = clock();
-    time_start_ros_ = this->robot_.now().seconds();
+    time_start_ros_ = this->getNode()->now().seconds();
   }
 
   virtual ~ModelPredictiveControllerBase() = default;
@@ -63,20 +63,20 @@ class ModelPredictiveControllerBase : public ControllerBase<Robot>
     Eigen::MatrixXd R = Eigen::MatrixXd::Zero(m, m);
 
     // Declare parameters
-    this->declare_parameter("controller/MPC/N", 2);
-    this->declare_parameter("controller/MPC/P", std::vector<double>());
-    this->declare_parameter("controller/MPC/Q", std::vector<double>());
-    this->declare_parameter("controller/MPC/R", std::vector<double>());
-    this->declare_parameter("controller/MPC/b_x", std::vector<double>());
-    this->declare_parameter("controller/MPC/A_x", std::vector<double>());
-    this->declare_parameter("controller/MPC/b_f", std::vector<double>());
-    this->declare_parameter("controller/MPC/A_f", std::vector<double>());
-    this->declare_parameter("controller/MPC/b_u", std::vector<double>());
-    this->declare_parameter("controller/MPC/A_u", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/N", 2);
+    this->getNode()->declare_parameter("controller/MPC/P", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/Q", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/R", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/b_x", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/A_x", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/b_f", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/A_f", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/b_u", std::vector<double>());
+    this->getNode()->declare_parameter("controller/MPC/A_u", std::vector<double>());
 
     // For int parameter, need to use rclcpp::Parameter
     rclcpp::Parameter N_param;
-    if (paramRead(*this, "controller/MPC/N", N_param)) {
+    if (paramRead(*(this->getNode()), "controller/MPC/N", N_param)) {
         horizonLength_ = N_param.as_int();
         this->robot_.setTrajectoryLength(horizonLength_);
     }
@@ -86,19 +86,19 @@ class ModelPredictiveControllerBase : public ControllerBase<Robot>
     CONFIRM("N : " + std::to_string(horizonLength_));
 
     // These are fine as they match the overload types
-    if (paramRead(*this, "controller/MPC/P", P) &&
-        paramRead(*this, "controller/MPC/Q", Q) &&
-        paramRead(*this, "controller/MPC/R", R)) {
+    if (paramRead(*(this->getNode()), "controller/MPC/P", P) &&
+        paramRead(*(this->getNode()), "controller/MPC/Q", Q) &&
+        paramRead(*(this->getNode()), "controller/MPC/R", R)) {
         setCostMatrices(P, Q, R);
     }
 
     // These are fine as they match the overload types
-    paramRead(*this, "controller/MPC/b_x", b_x_);
-    paramRead(*this, "controller/MPC/A_x", A_x_);
-    paramRead(*this, "controller/MPC/b_f", b_f_);
-    paramRead(*this, "controller/MPC/A_f", A_f_);
-    paramRead(*this, "controller/MPC/b_u", b_u_);
-    paramRead(*this, "controller/MPC/A_u", A_u_);
+    paramRead(*(this->getNode()), "controller/MPC/b_x", b_x_);
+    paramRead(*(this->getNode()), "controller/MPC/A_x", A_x_);
+    paramRead(*(this->getNode()), "controller/MPC/b_f", b_f_);
+    paramRead(*(this->getNode()), "controller/MPC/A_f", A_f_);
+    paramRead(*(this->getNode()), "controller/MPC/b_u", b_u_);
+    paramRead(*(this->getNode()), "controller/MPC/A_u", A_u_);
 
     // Debug output
     std::cerr << b_x_.transpose() << std::endl;
@@ -111,7 +111,7 @@ class ModelPredictiveControllerBase : public ControllerBase<Robot>
 
   virtual void advance(double dt) override
   {
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::lock_guard<std::mutex> lock(*(this->mutex_));
     this->dt_ = dt;
     calculateCostMatrixes();
     solveQuadraticOptimization();

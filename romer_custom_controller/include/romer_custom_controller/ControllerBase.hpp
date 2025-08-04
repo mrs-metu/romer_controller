@@ -23,8 +23,8 @@ template<typename Robot>
 class ControllerBase: public RosNodeModuleBase
 {
  public:
-  ControllerBase(const std::string& node_name, Robot& robot)
-      : RosNodeModuleBase(node_name),
+  ControllerBase(rclcpp::Node::SharedPtr node, Robot& robot)
+      : RosNodeModuleBase(node),
         isSimulation_(true),
         dt_(0.0),
         controllerRate_(0),
@@ -46,18 +46,18 @@ class ControllerBase: public RosNodeModuleBase
   virtual void readParameters()
   {
 
-    this->declare_parameter("simulation", true);
-    this->declare_parameter("controller/rate", 100.0);
+    getNode()->declare_parameter("simulation", true);
+    getNode()->declare_parameter("controller/rate", 100.0);
 
     // Then read them using paramRead
     rclcpp::Parameter sim_param;
     rclcpp::Parameter rate_param;
     
-    if (paramRead(*this, "simulation", sim_param)) {
+    if (paramRead(*getNode(), "simulation", sim_param)) {
       isSimulation_ = sim_param.as_bool();
     }
 
-    if (paramRead(*this, "controller/rate", rate_param)) {
+    if (paramRead(*getNode(), "controller/rate", rate_param)) {
       controllerRate_ = rate_param.as_double();
     }
     dt_ = 1.0 / controllerRate_;
@@ -79,7 +79,7 @@ class ControllerBase: public RosNodeModuleBase
 
  protected:
 
-  std::mutex mutex_;
+  std::unique_ptr<std::mutex> mutex_;
   double dt_;
   double controllerRate_;
   std::shared_ptr<rclcpp::Rate> rate_;
