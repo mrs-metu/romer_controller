@@ -36,6 +36,11 @@ ament_target_dependencies(testing
 )
 
 # Install
+install(TARGETS
+  testing
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(
   DIRECTORY include/
   DESTINATION include/
